@@ -364,8 +364,8 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
 
     if isDIGI:
         process.mypath = cms.Path(process.HLTBeginSequence*
-                                  process.HLTL2muonrecoSequence*
-                                  process.HLTL3muonrecoSequence*
+                                  process.HLTL2muonrecoSequencePPOnAA*
+                                  process.HLTL3muonrecoSequencePPOnAA*
                                   # process.hltTPClusterProducer*
                                   process.simHitTPAssocProducer*
                                   process.hltTrackAssociatorByHits*
@@ -374,8 +374,8 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
         process.myendpath = cms.EndPath(process.ntupler)
     else:
         process.mypath = cms.Path(process.HLTBeginSequence*
-                                  process.HLTL2muonrecoSequence*
-                                  process.HLTL3muonrecoSequence*
+                                  process.HLTL2muonrecoSequencePPOnAA*
+                                  process.HLTL3muonrecoSequencePPOnAA*
                                   process.trackAssoSeqNoGen*
                                   process.L1AssoSeq)
         process.myendpath = cms.EndPath(process.ntupler)
