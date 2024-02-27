@@ -6,7 +6,7 @@
 import FWCore.ParameterSet.Config as cms
 import HLTrigger.Configuration.MuonHLTForRun3.mvaScale as _mvaScale
 
-def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = True):
+def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = True, sysTag = "PPOnAA"):
     process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
     if hasattr(process, "DQMOutput"):
         del process.DQMOutput
@@ -39,8 +39,8 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
         associatePixel = cms.bool(True),
         associateStrip = cms.bool(True),
         usePhase2Tracker = cms.bool(False),
-        pixelSimLinkSrc = cms.InputTag("simSiPixelDigis"),
-        stripSimLinkSrc = cms.InputTag("simSiStripDigis"),
+        pixelSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siPixel"),
+        stripSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siStrip"),
         phase2TrackerSimLinkSrc  = cms.InputTag("simSiPixelDigis","Tracker"),
         associateRecoTracks = cms.bool(True)
     )
@@ -48,7 +48,7 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     # Produce tracks from L3 muons -- to use track hit association
     import SimMuon.MCTruth.MuonTrackProducer_cfi
     process.hltIterL3MuonsNoIDTracks = SimMuon.MCTruth.MuonTrackProducer_cfi.muonTrackProducer.clone()
-    process.hltIterL3MuonsNoIDTracks.muonsTag                      = cms.InputTag("hltIterL3MuonsNoIDPPOnAA", "", newProcessName)
+    process.hltIterL3MuonsNoIDTracks.muonsTag                      = cms.InputTag("hltIterL3MuonsNoID" + sysTag, "", newProcessName)
     process.hltIterL3MuonsNoIDTracks.selectionTags                 = ('All',)
     process.hltIterL3MuonsNoIDTracks.trackType                     = "innerTrackPlusSegments"
     process.hltIterL3MuonsNoIDTracks.ignoreMissingMuonCollection   = True
@@ -56,7 +56,7 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     process.hltIterL3MuonsNoIDTracks.inputDTRecSegment4DCollection = cms.InputTag("hltDt4DSegments", "", newProcessName)
 
     process.hltIterL3MuonsTracks = SimMuon.MCTruth.MuonTrackProducer_cfi.muonTrackProducer.clone()
-    process.hltIterL3MuonsTracks.muonsTag                          = cms.InputTag("hltIterL3MuonsPPOnAA", "", newProcessName)
+    process.hltIterL3MuonsTracks.muonsTag                          = cms.InputTag("hltIterL3Muons"+sysTag, "", newProcessName)
     process.hltIterL3MuonsTracks.selectionTags                     = ('All',)
     process.hltIterL3MuonsTracks.trackType                         = "innerTrackPlusSegments"
     process.hltIterL3MuonsTracks.ignoreMissingMuonCollection       = True
@@ -64,7 +64,7 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     process.hltIterL3MuonsTracks.inputDTRecSegment4DCollection     = cms.InputTag("hltDt4DSegments", "", newProcessName)
 
     process.hltIterL3GlbMuonTracks = SimMuon.MCTruth.MuonTrackProducer_cfi.muonTrackProducer.clone()
-    process.hltIterL3GlbMuonTracks.muonsTag                          = cms.InputTag("hltIterL3GlbMuonPPOnAA", "", newProcessName)
+    process.hltIterL3GlbMuonTracks.muonsTag                          = cms.InputTag("hltIterL3GlbMuon" + sysTag, "", newProcessName)
     process.hltIterL3GlbMuonTracks.selectionTags                     = ('All',)
     process.hltIterL3GlbMuonTracks.trackType                         = "innerTrackPlusSegments"
     process.hltIterL3GlbMuonTracks.ignoreMissingMuonCollection       = True
@@ -87,41 +87,43 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     hltMuonAssociatorByHits.tpRefVector                  = True
     hltMuonAssociatorByHits.UseTracker                   = True
     hltMuonAssociatorByHits.UseMuon                      = False  # True
+    hltMuonAssociatorByHits.pixelSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siPixel")
+    hltMuonAssociatorByHits.stripSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siStrip")
 
     # Hit associators from each track
-    process.AhltIterL3OIMuonTrackSelectionHighPurity          = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3OIMuonTrackSelectionHighPurityPPOnAA", "", newProcessName) )
-    process.AhltIter0IterL3MuonTrackSelectionHighPurity       = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3MuonTrackSelectionHighPurityPPOnAA", "", newProcessName) )
-    #process.AhltIter2IterL3MuonTrackSelectionHighPurity       = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3MuonTrackSelectionHighPurityPPOnAA", "", newProcessName) )
-    process.AhltIter0IterL3FromL1MuonTrackSelectionHighPurity = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurityPPOnAA", "", newProcessName) )
-    #process.AhltIter2IterL3FromL1MuonTrackSelectionHighPurity = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurityPPOnAA", "", newProcessName) )
-    #process.AhltIter2IterL3MuonMerged                         = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter2IterL3MuonMergedPPOnAA", "", newProcessName) )
-    #process.AhltIter2IterL3FromL1MuonMerged                   = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter2IterL3FromL1MuonMergedPPOnAA", "", newProcessName) )
-    process.AhltIterL3MuonMerged                              = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3MuonMergedPPOnAA", "", newProcessName) )
-    process.AhltIterL3MuonAndMuonFromL1Merged                 = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3MuonAndMuonFromL1MergedPPOnAA", "", newProcessName) )
+    process.AhltIterL3OIMuonTrackSelectionHighPurity          = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3OIMuonTrackSelectionHighPurity" +sysTag, "", newProcessName) )
+    process.AhltIter0IterL3MuonTrackSelectionHighPurity       = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3MuonTrackSelectionHighPurity" + sysTag, "", newProcessName) )
+    #process.AhltIter2IterL3MuonTrackSelectionHighPurity       = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3MuonTrackSelectionHighPurity" + sysTag, "", newProcessName) )
+    process.AhltIter0IterL3FromL1MuonTrackSelectionHighPurity = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurity" + sysTag, "", newProcessName) )
+    #process.AhltIter2IterL3FromL1MuonTrackSelectionHighPurity = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurity" + sysTag, "", newProcessName) )
+    #process.AhltIter2IterL3MuonMerged                         = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter2IterL3MuonMerged" + sysTag, "", newProcessName) )
+    #process.AhltIter2IterL3FromL1MuonMerged                   = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIter2IterL3FromL1MuonMerged" + sysTag, "", newProcessName) )
+    process.AhltIterL3MuonMerged                              = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3MuonMerged" + sysTag, "", newProcessName) )
+    process.AhltIterL3MuonAndMuonFromL1Merged                 = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3MuonAndMuonFromL1Merged" + sysTag, "", newProcessName) )
     process.AhltIterL3MuonsNoID                               = hltMuonAssociatorByHits.clone(
-        tracksTag = cms.InputTag("hltIterL3MuonsNoIDTracksPPOnAA", "", newProcessName),
+        tracksTag = cms.InputTag("hltIterL3MuonsNoIDTracks" + sysTag, "", newProcessName),
         UseMuon = cms.bool(True),
         rejectBadGlobal = cms.bool(False),
     )
     process.AhltIterL3Muons                                   = hltMuonAssociatorByHits.clone(
-        tracksTag = cms.InputTag("hltIterL3MuonsTracksPPOnAA", "", newProcessName),
+        tracksTag = cms.InputTag("hltIterL3MuonsTracks" + sysTag, "", newProcessName),
         UseMuon = cms.bool(True),
         rejectBadGlobal = cms.bool(False),
     )
     #process.AhltPixelTracks = hltMuonAssociatorByHits.clone(
-    #    tracksTag = cms.InputTag("hltPixelTracksPPOnAA", "", newProcessName),
+    #    tracksTag = cms.InputTag("hltPixelTracks" + sysTag, "", newProcessName),
     #    PurityCut_track = cms.double(0.65),
     #)
     process.AhltPixelTracksInRegionL2 = hltMuonAssociatorByHits.clone(
-        tracksTag = cms.InputTag("hltPixelTracksInRegionL2PPOnAA", "", newProcessName),
+        tracksTag = cms.InputTag("hltPixelTracksInRegionL2" + sysTag, "", newProcessName),
         PurityCut_track = cms.double(0.65),
     )
     process.AhltPixelTracksInRegionL1 = hltMuonAssociatorByHits.clone(
-        tracksTag = cms.InputTag("hltPixelTracksInRegionL1PPOnAA", "", newProcessName),
+        tracksTag = cms.InputTag("hltPixelTracksInRegionL1" + sysTag, "", newProcessName),
         PurityCut_track = cms.double(0.65),
     )
     #process.AhltPixelTracksForSeedsL3Muon = hltMuonAssociatorByHits.clone( # For Run2 Legacy comparison
-    #    tracksTag = cms.InputTag("hltPixelTracksForSeedsL3MuonPPOnAA", "", newProcessName),
+    #    tracksTag = cms.InputTag("hltPixelTracksForSeedsL3Muon" + sysTag, "", newProcessName),
     #    PurityCut_track = cms.double(0.65),
     #)
     #process.AhltMuCtfTracks= hltMuonAssociatorByHits.clone(
@@ -133,7 +135,7 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     #    PurityCut_track = cms.double(0.65),
     #)
     process.AhltIterL3GlbMuon = hltMuonAssociatorByHits.clone(
-        tracksTag = cms.InputTag("hltIterL3GlbMuonTracksPPOnAA", "", newProcessName),
+        tracksTag = cms.InputTag("hltIterL3GlbMuonTracks" + sysTag, "", newProcessName),
         UseMuon = cms.bool(True),
         rejectBadGlobal = cms.bool(False),
     )
@@ -160,24 +162,24 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     ]
     # Labels for calling each track in the Ntupler
     trackLabels = [
-        cms.untracked.InputTag("hltIterL3OIMuonTrackSelectionHighPurityPPOnAA",          "", newProcessName),
-        cms.untracked.InputTag("hltIter0IterL3MuonTrackSelectionHighPurityPPOnAA",       "", newProcessName),
-        #cms.untracked.InputTag("hltIter0IterL3MuonTrackSelectionHighPurityPPOnAA",       "", newProcessName),
-        cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurityPPOnAA", "", newProcessName),
-        #cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurityPPOnAA", "", newProcessName),
-        #cms.untracked.InputTag("hltIter2IterL3MuonMergedPPOnAA",                         "", newProcessName),
-        #cms.untracked.InputTag("hltIter2IterL3FromL1MuonMergedPPOnAA",                   "", newProcessName),
-        cms.untracked.InputTag("hltIterL3MuonMergedPPOnAA",                              "", newProcessName),
-        cms.untracked.InputTag("hltIterL3MuonAndMuonFromL1MergedPPOnAA",                 "", newProcessName),
-        cms.untracked.InputTag("hltIterL3MuonsNoIDTracksPPOnAA",                         "", newProcessName),
-        cms.untracked.InputTag("hltIterL3MuonsTracksPPOnAA",                             "", newProcessName),
-        #cms.untracked.InputTag("hltPixelTracksPPOnAA",                                   "", newProcessName),
-        cms.untracked.InputTag("hltPixelTracksInRegionL2PPOnAA",                         "", newProcessName),
-        cms.untracked.InputTag("hltPixelTracksInRegionL1PPOnAA",                         "", newProcessName),
-        #cms.untracked.InputTag("hltPixelTracksForSeedsL3MuonPPOnAA",                     "", newProcessName),
-        #cms.untracked.InputTag("hltMuCtfTracksPPOnAA",                                   "", newProcessName),
-        #cms.untracked.InputTag("hltDiMuonMergingPPOnAA",                                 "", newProcessName),
-        cms.untracked.InputTag("hltIterL3GlbMuonTracksPPOnAA",                           "", newProcessName),
+        cms.untracked.InputTag("hltIterL3OIMuonTrackSelectionHighPurity" + sysTag,          "", newProcessName),
+        cms.untracked.InputTag("hltIter0IterL3MuonTrackSelectionHighPurity" + sysTag,       "", newProcessName),
+        #cms.untracked.InputTag("hltIter0IterL3MuonTrackSelectionHighPurity" + sysTag,       "", newProcessName),
+        cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurity" + sysTag, "", newProcessName),
+        #cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurity" + sysTag, "", newProcessName),
+        #cms.untracked.InputTag("hltIter2IterL3MuonMerged" + sysTag,                         "", newProcessName),
+        #cms.untracked.InputTag("hltIter2IterL3FromL1MuonMerged" + sysTag,                   "", newProcessName),
+        cms.untracked.InputTag("hltIterL3MuonMerged" + sysTag,                              "", newProcessName),
+        cms.untracked.InputTag("hltIterL3MuonAndMuonFromL1Merged" + sysTag,                 "", newProcessName),
+        cms.untracked.InputTag("hltIterL3MuonsNoIDTracks" + sysTag,                         "", newProcessName),
+        cms.untracked.InputTag("hltIterL3MuonsTracks" + sysTag,                             "", newProcessName),
+        #cms.untracked.InputTag("hltPixelTracks" + sysTag,                                   "", newProcessName),
+        cms.untracked.InputTag("hltPixelTracksInRegionL2" + sysTag,                         "", newProcessName),
+        cms.untracked.InputTag("hltPixelTracksInRegionL1" + sysTag,                         "", newProcessName),
+        #cms.untracked.InputTag("hltPixelTracksForSeedsL3Muon" + sysTag,                     "", newProcessName),
+        #cms.untracked.InputTag("hltMuCtfTracks" + sysTag,                                   "", newProcessName),
+        #cms.untracked.InputTag("hltDiMuonMerging" + sysTag,                                 "", newProcessName),
+        cms.untracked.InputTag("hltIterL3GlbMuonTracks" + sysTag,                           "", newProcessName),
     ]
 
     # Labels for calling each associator in the Ntupler
@@ -320,19 +322,19 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
 
     process.ntupler.L1Muon           = cms.untracked.InputTag("hltGtStage2Digis",        "Muon", newProcessName)
     #process.ntupler.L1Muon           = cms.untracked.InputTag("gmtStage2Digis",          "Muon", "RECO")
-    process.ntupler.L2Muon           = cms.untracked.InputTag("hltL2MuonCandidatesPPOnAA",     "",     newProcessName)
-    process.ntupler.L3Muon           = cms.untracked.InputTag("hltIterL3MuonCandidatesPPOnAA", "",     newProcessName)
+    process.ntupler.L2Muon           = cms.untracked.InputTag("hltL2MuonCandidates" + sysTag,     "",     newProcessName)
+    process.ntupler.L3Muon           = cms.untracked.InputTag("hltIterL3MuonCandidates" + sysTag, "",     newProcessName)
     #process.ntupler.TkMuon           = cms.untracked.InputTag("hltHighPtTkMuonCands",    "",     newProcessName)
 
-    process.ntupler.iterL3OI         = cms.untracked.InputTag("hltL3MuonsIterL3OIPPOnAA",                   "", newProcessName)
-    process.ntupler.iterL3IOFromL2   = cms.untracked.InputTag("hltL3MuonsIterL3IOPPOnAA",                   "", newProcessName)
-    process.ntupler.iterL3FromL2     = cms.untracked.InputTag("hltIterL3MuonsFromL2LinksCombinationPPOnAA", "", newProcessName)
-    process.ntupler.iterL3IOFromL1   = cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurityPPOnAA", "", newProcessName)
-    process.ntupler.iterL3MuonNoID   = cms.untracked.InputTag("hltIterL3MuonsNoIDPPOnAA",                   "", newProcessName)
-    process.ntupler.iterL3Muon       = cms.untracked.InputTag("hltIterL3MuonsPPOnAA",                       "", newProcessName)
+    process.ntupler.iterL3OI         = cms.untracked.InputTag("hltL3MuonsIterL3OI" + sysTag,                   "", newProcessName)
+    process.ntupler.iterL3IOFromL2   = cms.untracked.InputTag("hltL3MuonsIterL3IO" + sysTag,                   "", newProcessName)
+    process.ntupler.iterL3FromL2     = cms.untracked.InputTag("hltIterL3MuonsFromL2LinksCombination" + sysTag, "", newProcessName)
+    process.ntupler.iterL3IOFromL1   = cms.untracked.InputTag("hltIter0IterL3FromL1MuonTrackSelectionHighPurity" + sysTag, "", newProcessName)
+    process.ntupler.iterL3MuonNoID   = cms.untracked.InputTag("hltIterL3MuonsNoID" + sysTag,                   "", newProcessName)
+    process.ntupler.iterL3Muon       = cms.untracked.InputTag("hltIterL3Muons" + sysTag,                       "", newProcessName)
 
-    process.ntupler.hltIterL3MuonTrimmedPixelVertices                 = cms.untracked.InputTag("hltIterL3MuonTrimmedPixelVerticesPPOnAA",                   "", newProcessName)
-    process.ntupler.hltIterL3FromL1MuonTrimmedPixelVertices           = cms.untracked.InputTag("hltIterL3FromL1MuonTrimmedPixelVerticesPPOnAA",             "", newProcessName)
+    process.ntupler.hltIterL3MuonTrimmedPixelVertices                 = cms.untracked.InputTag("hltIterL3MuonTrimmedPixelVertices" + sysTag,                   "", newProcessName)
+    process.ntupler.hltIterL3FromL1MuonTrimmedPixelVertices           = cms.untracked.InputTag("hltIterL3FromL1MuonTrimmedPixelVertices" + sysTag,             "", newProcessName)
 
     process.ntupler.doMVA  = cms.bool(True)
     process.ntupler.doSeed = cms.bool(False)
@@ -361,23 +363,41 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
 
     # process.ntupler.myTriggerResults = cms.untracked.InputTag("TriggerResults::HLT") # dummy to avoid ordering error occur in skimming, as it is not used at the moment
     process.ntupler.DebugMode = cms.bool(False)
-
-    if isDIGI:
-        process.mypath = cms.Path(process.HLTBeginSequence*
-                                  process.HLTL2muonrecoSequencePPOnAA*
-                                  process.HLTL3muonrecoSequencePPOnAA*
-                                  # process.hltTPClusterProducer*
-                                  process.simHitTPAssocProducer*
-                                  process.hltTrackAssociatorByHits*
-                                  process.trackAssoSeq*
-                                  process.L1AssoSeq)
-        process.myendpath = cms.EndPath(process.ntupler)
-    else:
-        process.mypath = cms.Path(process.HLTBeginSequence*
-                                  process.HLTL2muonrecoSequencePPOnAA*
-                                  process.HLTL3muonrecoPPOnAASequence*
-                                  process.trackAssoSeqNoGen*
-                                  process.L1AssoSeq)
-        process.myendpath = cms.EndPath(process.ntupler)
+    if sysTag == "PPOnAA":
+        if isDIGI:
+            process.mypath = cms.Path(process.HLTBeginSequence*
+                                      process.HLTL2muonrecoSequencePPOnAA*
+                                      process.HLTL3muonrecoSequencePPOnAA*
+                                      # process.hltTPClusterProducer*
+                                      process.simHitTPAssocProducer*
+                                      process.hltTrackAssociatorByHits*
+                                      process.trackAssoSeq*
+                                      process.L1AssoSeq)
+            process.myendpath = cms.EndPath(process.ntupler)
+        else:
+            process.mypath = cms.Path(process.HLTBeginSequence*
+                                      process.HLTL2muonrecoSequencePPOnAA*
+                                      process.HLTL3muonrecoPPOnAASequence*
+                                      process.trackAssoSeqNoGen*
+                                      process.L1AssoSeq)
+            process.myendpath = cms.EndPath(process.ntupler)
+    if sysTag == "PPRef" or sysTag == "":
+        if isDIGI:
+            process.mypath = cms.Path(process.HLTBeginSequence*
+                                      process.HLTL2muonrecoSequence*
+                                      process.HLTL3muonrecoSequence*
+                                      # process.hltTPClusterProducer*
+                                      process.simHitTPAssocProducer*
+                                      process.hltTrackAssociatorByHits*
+                                      process.trackAssoSeq*
+                                      process.L1AssoSeq)
+            process.myendpath = cms.EndPath(process.ntupler)
+        else:
+            process.mypath = cms.Path(process.HLTBeginSequence*
+                                      process.HLTL2muonrecoSequence*
+                                      process.HLTL3muonrecoSequence*
+                                      process.trackAssoSeqNoGen*
+                                      process.L1AssoSeq)
+            process.myendpath = cms.EndPath(process.ntupler)
 
     return process
