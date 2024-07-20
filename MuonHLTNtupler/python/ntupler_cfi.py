@@ -8,6 +8,9 @@ ntuplerBase = cms.EDAnalyzer("MuonHLTNtupler",
 	offlineVertex     = cms.untracked.InputTag("offlinePrimaryVertices"),
 	offlineMuon       = cms.untracked.InputTag("muons"),
 	beamSpot          = cms.untracked.InputTag("hltOnlineBeamSpot"),
+        hiCentralitySrc = cms.InputTag("hiCentrality"),
+        hiCentralityBinSrc = cms.InputTag("centralityBin", "HFtowers"),
+
 
 	# -- newly created objects by HLT rerun
 	# -- new process name = "MYHLT"

@@ -3,6 +3,7 @@
 <use name="FWCore/ParameterSet"/>
 <use name="CommonTools/UtilAlgos"/>
 <use name="DataFormats/MuonReco"/>
+<use name="DataFormats/HeavyIonEvent"/>
 <use name="HLTrigger/HLTcore"/>
 <use name="CLHEP"/>
 <use name="root"/>

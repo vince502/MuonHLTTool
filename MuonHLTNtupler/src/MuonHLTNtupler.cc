@@ -35,6 +35,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/Scalers/interface/LumiScalers.h"
+#include "DataFormats/HeavyIonEvent/interface/Centrality.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
@@ -124,6 +125,8 @@ t_genl1MatchesDeltaR_      ( consumes< edm::ValueMap<float> >                   
 t_genl1MatchesByQ_         ( consumes< pat::TriggerObjectStandAloneMatch >               (iConfig.getParameter<edm::InputTag>("genl1MatchesByQ"))),
 t_genl1MatchesByQQuality_  ( consumes< edm::ValueMap<int> >                              (iConfig.getParameter<edm::InputTag>("genl1MatchesByQQuality"))),
 t_genl1MatchesByQDeltaR_   ( consumes< edm::ValueMap<float> >                            (iConfig.getParameter<edm::InputTag>("genl1MatchesByQDeltaR"))),
+CentralityTag_(consumes<reco::Centrality>(iConfig.getParameter<edm::InputTag>("hiCentralitySrc"))),
+CentralityBinTag_(consumes<int>(iConfig.getParameter<edm::InputTag>("hiCentralityBinSrc"))),
 bs(0)
 {
   trackCollectionNames_   = iConfig.getUntrackedParameter<std::vector<std::string>   >("trackCollectionNames");
@@ -335,6 +338,22 @@ void MuonHLTNtupler::Init()
   offlineDataPU_    = -999;
   offlineDataPURMS_ = -999;
   offlineBunchLumi_ = -999;
+  hi_cBin = -999;
+  hiHF             =-999 ;
+  hiHFplus         =-999 ;
+  hiHFminus        =-999 ;
+  hiHFeta4         =-999 ;
+  hiHFplusEta4     =-999 ;
+  hiHFminusEta4    =-999 ;
+  hiHFhit          =-999 ;
+  hiNpix           =-999 ;
+  hiNpixelTracks   =-999 ;
+  hiNtracks        =-999 ;
+  hiEB             =-999 ;
+  hiEE             =-999 ;
+  hiET             =-999 ;
+
+
 
   truePU_ = -999;
 
@@ -519,7 +538,9 @@ void MuonHLTNtupler::Init()
     muon_nl1t_[i]        = -999;
     muon_l1tpt_.clear();
     muon_l1teta_.clear();
+    muon_l1tpropeta_.clear();
     muon_l1tphi_.clear();
+    muon_l1tpropphi_.clear();
     muon_l1tcharge_.clear();
     muon_l1tq_.clear();
     muon_l1tdr_.clear();
@@ -842,6 +863,21 @@ void MuonHLTNtupler::Make_Branch()
   ntuple_->Branch("offlineDataPURMS", &offlineDataPURMS_, "offlineDataPURMS/D");
   ntuple_->Branch("offlineBunchLumi", &offlineBunchLumi_, "offlineBunchLumi/D");
   ntuple_->Branch("truePU", &truePU_, "truePU/I");
+  ntuple_->Branch("hi_cBin",&hi_cBin);
+  ntuple_->Branch("hiHF", &hiHF);
+  ntuple_->Branch("hiHFplus", &hiHFplus);
+  ntuple_->Branch("hiHFminus", &hiHFminus);
+  ntuple_->Branch("hiHFeta4", &hiHFeta4);
+  ntuple_->Branch("hiHFpluseta4", &hiHFplusEta4);
+  ntuple_->Branch("hiHFminuseta4", &hiHFminusEta4);
+  ntuple_->Branch("hiHFhit", &hiHFhit);
+  ntuple_->Branch("hiNpix", &hiNpix);
+  ntuple_->Branch("hiNpixelTracks", &hiNpixelTracks);
+  ntuple_->Branch("hiNtracks", &hiNtracks);
+  ntuple_->Branch("hiEB", &hiEB);
+  ntuple_->Branch("hiEE", &hiEE);
+  ntuple_->Branch("hiET", &hiET);
+
 
   ntuple_->Branch("rho_ECAL", &rho_ECAL_, "rho_ECAL/D");
   ntuple_->Branch("rho_HCAL", &rho_HCAL_, "rho_HCAL/D");
@@ -996,7 +1032,9 @@ void MuonHLTNtupler::Make_Branch()
   ntuple_->Branch("muon_nl1t", &muon_nl1t_, "muon_nl1t[nMuon]/I");
   ntuple_->Branch("muon_l1tpt", &muon_l1tpt_);
   ntuple_->Branch("muon_l1teta", &muon_l1teta_);
+  ntuple_->Branch("muon_l1tpropeta", &muon_l1tpropeta_);
   ntuple_->Branch("muon_l1tphi", &muon_l1tphi_);
+  ntuple_->Branch("muon_l1tpropphi", &muon_l1tpropphi_);
   ntuple_->Branch("muon_l1tcharge", &muon_l1tcharge_);
   ntuple_->Branch("muon_l1tq", &muon_l1tq_);
   ntuple_->Branch("muon_l1tdr", &muon_l1tdr_);
@@ -1269,6 +1307,10 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
   edm::Handle<std::vector<reco::Muon> > h_offlineMuon;
   if( iEvent.getByToken(t_offlineMuon_, h_offlineMuon) ) // -- only when the dataset has offline muon collection (e.g. AOD) -- //
   {
+    edm::Handle<reco::Centrality> hicentrality;
+    iEvent.getByToken(CentralityTag_, hicentrality);
+    edm::Handle<int> hicentralityBin;
+    iEvent.getByToken(CentralityBinTag_,hicentralityBin);
     edm::Handle<pat::TriggerObjectStandAloneMatch> h_recol1Matches;
     iEvent.getByToken(t_recol1Matches_, h_recol1Matches);
     edm::Handle<edm::ValueMap<int>> h_recol1Qualities;
@@ -1288,6 +1330,24 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
     int _nMuon = 0;
     for(std::vector<reco::Muon>::const_iterator mu=h_offlineMuon->begin(); mu!=h_offlineMuon->end(); ++mu)
     {
+     
+            hi_cBin = (int)*hicentralityBin;
+            hiHF = (float) hicentrality->EtHFtowerSum();
+            hiHFplus = (float) hicentrality->EtHFtowerSumPlus();
+            hiHFminus = (float) hicentrality->EtHFtowerSumMinus();
+            hiHFeta4 = (float) hicentrality->EtHFtruncatedPlus()+hicentrality->EtHFtruncatedMinus();
+            hiHFplusEta4 = (float) hicentrality->EtHFtruncatedPlus();
+            hiHFminusEta4 = (float) hicentrality->EtHFtruncatedMinus();
+            hiHFhit = (float) hicentrality->EtHFhitSum();
+            hiNpix = (float) hicentrality->multiplicityPixel();
+            hiNpixelTracks = (float) hicentrality->NpixelTracks();
+            hiNtracks = (float) hicentrality->Ntracks();
+            hiEB = (float) hicentrality->EtEBSum();
+            hiEE = (float) hicentrality->EtEESum();
+            hiET = (float) hicentrality->EtMidRapiditySum();
+
+
+      
       muon_pt_[_nMuon]  = mu->pt();
       muon_eta_[_nMuon] = mu->eta();
       muon_phi_[_nMuon] = mu->phi();
@@ -1425,7 +1485,9 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
       edm::Handle<l1t::MuonBxCollection> h_L1Muon;
       std::vector<double> muon_l1tpt_tmp = {};
       std::vector<double> muon_l1teta_tmp = {};
+      std::vector<double> muon_l1tpropeta_tmp = {};
       std::vector<double> muon_l1tphi_tmp = {};
+      std::vector<double> muon_l1tpropphi_tmp = {};
       std::vector<double> muon_l1tcharge_tmp = {};
       std::vector<double> muon_l1tq_tmp = {};
       std::vector<double> muon_l1tdr_tmp = {};
@@ -1442,7 +1504,9 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
 
                   muon_l1tpt_tmp.push_back(l1t->pt());
                   muon_l1teta_tmp.push_back(l1t->eta());
+                  muon_l1tpropeta_tmp.push_back(etaForMatch);
                   muon_l1tphi_tmp.push_back(l1t->phi());
+                  muon_l1tpropphi_tmp.push_back(phiForMatch);
                   muon_l1tcharge_tmp.push_back(l1t->charge());
                   muon_l1tq_tmp.push_back(l1t->hwQual());
                   muon_l1tdr_tmp.push_back(deltaR(etaForMatch, phiForMatch, l1t->eta(), l1t->phi()));
@@ -1453,7 +1517,9 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
         }
       muon_l1tpt_.push_back(muon_l1tpt_tmp);
       muon_l1teta_.push_back(muon_l1teta_tmp);
+      muon_l1tpropeta_.push_back(muon_l1tpropeta_tmp);
       muon_l1tphi_.push_back(muon_l1tphi_tmp);
+      muon_l1tpropphi_.push_back(muon_l1tpropphi_tmp);
       muon_l1tcharge_.push_back(muon_l1tcharge_tmp);
       muon_l1tq_.push_back(muon_l1tq_tmp);
       muon_l1tdr_.push_back(muon_l1tdr_tmp);

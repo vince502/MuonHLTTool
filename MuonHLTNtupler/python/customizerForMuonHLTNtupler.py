@@ -30,6 +30,20 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     # process.hltTrackAssociatorByHits.UseGrouped               = cms.bool( False )
     # process.hltTrackAssociatorByHits.UseSplitting             = cms.bool( False )
     # process.hltTrackAssociatorByHits.ThreeHitTracksAreSpecial = cms.bool( False )
+    process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
+    process.centralityBin.Centrality = cms.InputTag("hiCentrality")
+    process.centralityBin.centralityVariable = cms.string("HFtowers")
+    process.GlobalTag.snapshotTime = cms.string("9999-12-31 23:59:59.000")
+    process.GlobalTag.toGet.extend([
+    cms.PSet(record = cms.string("HeavyIonRcd"),
+        tag = cms.string("CentralityTable_HFtowers200_DataPbPb_periHYDJETshape_run3v1302x04_offline_374289"),
+        connect = cms.string("sqlite_file:CentralityTable_HFtowers200_DataPbPb_periHYDJETshape_run3v1302x04_offline_374289.db"),
+        label = cms.untracked.string("HFtowers")
+        ),
+    ])
+
+
+
 
     process.hltTrackAssociatorByHits = SimTracker.TrackAssociatorProducers.trackAssociatorByHits_cfi.trackAssociatorByHits.clone(
         UsePixels = cms.bool(True),
@@ -39,9 +53,9 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
         associatePixel = cms.bool(True),
         associateStrip = cms.bool(True),
         usePhase2Tracker = cms.bool(False),
-        pixelSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siPixel"),
-        stripSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siStrip"),
-        phase2TrackerSimLinkSrc  = cms.InputTag("simSiPixelDigis","Tracker"),
+        pixelSimLinkSrc = cms.InputTag("simSiPixelDigis",""),
+        stripSimLinkSrc = cms.InputTag("simSiStripDigis", ""),
+        phase2TrackerSimLinkSrc  = cms.InputTag("simSiPixelDigis",""),
         associateRecoTracks = cms.bool(True)
     )
 
@@ -87,8 +101,8 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
     hltMuonAssociatorByHits.tpRefVector                  = True
     hltMuonAssociatorByHits.UseTracker                   = True
     hltMuonAssociatorByHits.UseMuon                      = False  # True
-    hltMuonAssociatorByHits.pixelSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siPixel")
-    hltMuonAssociatorByHits.stripSimLinkSrc = cms.InputTag("prunedDigiSimLinks", "siStrip")
+    hltMuonAssociatorByHits.pixelSimLinkSrc = cms.InputTag("simSiPixelDigis","")
+    hltMuonAssociatorByHits.stripSimLinkSrc = cms.InputTag("simSiStripDigis", "")
 
     # Hit associators from each track
     process.AhltIterL3OIMuonTrackSelectionHighPurity          = hltMuonAssociatorByHits.clone( tracksTag = cms.InputTag("hltIterL3OIMuonTrackSelectionHighPurity" +sysTag, "", newProcessName) )
@@ -243,6 +257,8 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
         matched = cms.InputTag("hltGtStage2Digis:Muon:MYHLT"),
         useTrack = cms.string("none"),
 
+
+
         useStation2 = cms.bool(True),
         cosmicPropagationHypothesis = cms.bool(False),
         propagatorAlong = cms.ESInputTag("", "SteppingHelixPropagatorAlong"),
@@ -367,12 +383,14 @@ def customizerFuncForMuonHLTNtupler(process, newProcessName = "MYHLT", isDIGI = 
         if isDIGI:
             process.mypath = cms.Path(process.HLTBeginSequence*
                                       process.HLTL2muonrecoSequencePPOnAA*
-                                      process.HLTL3muonrecoSequencePPOnAA*
+                                      process.HLTL3muonrecoPPOnAASequence*
                                       # process.hltTPClusterProducer*
                                       process.simHitTPAssocProducer*
                                       process.hltTrackAssociatorByHits*
                                       process.trackAssoSeq*
+                                      process.centralityBin*
                                       process.L1AssoSeq)
+                        
             process.myendpath = cms.EndPath(process.ntupler)
         else:
             process.mypath = cms.Path(process.HLTBeginSequence*

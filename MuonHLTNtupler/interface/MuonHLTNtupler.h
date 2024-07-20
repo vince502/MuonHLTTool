@@ -54,6 +54,7 @@
 #include "DataFormats/TrajectoryState/interface/PTrajectoryStateOnDet.h"
 #include "DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h"
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
+#include "DataFormats/HeavyIonEvent/interface/Centrality.h"
 
 //--- for SimHit association
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
@@ -154,6 +155,8 @@ private:
   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> associatorToken;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticleToken;
 
+
+
   edm::EDGetTokenT< reco::BeamSpot >                         t_beamSpot_;
   edm::EDGetTokenT< std::vector<reco::Muon> >                t_offlineMuon_;
   edm::EDGetTokenT< reco::VertexCollection >                 t_offlineVertex_;
@@ -207,6 +210,8 @@ private:
   edm::EDGetTokenT<pat::TriggerObjectStandAloneMatch>      t_genl1MatchesByQ_;
   edm::EDGetTokenT<edm::ValueMap<int>>                     t_genl1MatchesByQQuality_;
   edm::EDGetTokenT<edm::ValueMap<float>>                   t_genl1MatchesByQDeltaR_;
+  edm::EDGetTokenT<reco::Centrality> CentralityTag_;
+  edm::EDGetTokenT<int> CentralityBinTag_;
 
   // typedef std::vector< std::pair<SeedMvaEstimator*, SeedMvaEstimator*> > pairSeedMvaEstimator;
   typedef std::vector< std::pair<std::unique_ptr<const SeedMvaEstimator>, std::unique_ptr<const SeedMvaEstimator>>> pairSeedMvaEstimator;
@@ -281,6 +286,22 @@ private:
   int genParticle_fromHardProcessDecayed_[arrSize_];
   int genParticle_fromHardProcessFinalState_[arrSize_];
   int genParticle_isMostlyLikePythia6Status3_[arrSize_];
+  int hi_cBin;
+  float hiHF;
+  float hiHFplus;
+  float hiHFminus;
+  float hiHFeta4;
+  float hiHFplusEta4;
+  float hiHFminusEta4;
+  float hiHFhit;
+  float hiNpix;
+  float hiNpixelTracks;
+  float hiNtracks;
+  float hiEB;
+  float hiEE;
+  float hiET;
+
+
 
   double genParticle_l1pt_[arrSize_];
   double genParticle_l1eta_[arrSize_];
@@ -468,7 +489,9 @@ private:
   int muon_nl1t_[arrSize_];
   vector<vector<double>> muon_l1tpt_;
   vector<vector<double>> muon_l1teta_;
+  vector<vector<double>> muon_l1tpropeta_;
   vector<vector<double>> muon_l1tphi_;
+  vector<vector<double>> muon_l1tpropphi_;
   vector<vector<double>> muon_l1tcharge_;
   vector<vector<double>> muon_l1tq_;
   vector<vector<double>> muon_l1tdr_;
