@@ -99,8 +99,10 @@ def customizerFuncForMuonHLTSeedNtupler(process, newProcessName = "MYHLT", isDIG
 
     if isDIGI:
         process.myseedpath = cms.Path(process.HLTBeginSequence*
-                                      process.HLTL2muonrecoSequencePPOnAA*
-                                      process.HLTL3muonrecoPPOnAASequence*
+                                      #process.HLTL2muonrecoSequencePPOnAA*
+                                      #process.HLTL3muonrecoPPOnAASequence*
+                                      process.HLTL2muonrecoSequence*
+                                      process.HLTL3muonrecoSequence*
                                       # process.hltTPClusterProducer*
                                       process.simHitTPAssocProducer*
                                       process.hltTrackAssociatorByHits*
@@ -108,10 +110,10 @@ def customizerFuncForMuonHLTSeedNtupler(process, newProcessName = "MYHLT", isDIG
                                       process.seedNtupler)
     else:
         process.myseedpath = cms.Path(process.HLTBeginSequence*
-                                      process.HLTL2muonrecoSequencePPOnAA*
-                                      process.HLTL3muonrecoPPOnAASequence*
-                                      #process.HLTL2muonrecoSequence*
-                                      #process.HLTL3muonrecoSequence*
+                                      #process.HLTL2muonrecoSequencePPOnAA*
+                                      #process.HLTL3muonrecoPPOnAASequence*
+                                      process.HLTL2muonrecoSequence*
+                                      process.HLTL3muonrecoSequence*
                                       process.seedNtupler)
 
     return process

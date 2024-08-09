@@ -42,6 +42,7 @@ ntuplerBase = cms.EDAnalyzer("MuonHLTNtupler",
 	hltIterL3FromL1MuonTrimmedPixelVertices           = cms.untracked.InputTag("hltIterL3FromL1MuonTrimmedPixelVertices",             "", "MYHLT"),
 
 	doMVA  = cms.bool(True),
+	doHI  = cms.bool(False),
 	doSeed = cms.bool(True),
 
         useSimpleGeometry = cms.bool( True ),

@@ -72,6 +72,7 @@ using namespace edm;
 
 MuonHLTNtupler::MuonHLTNtupler(const edm::ParameterSet& iConfig):
 doMVA(iConfig.getParameter<bool>("doMVA")),
+doHI(iConfig.getParameter<bool>("doHI")),
 doSeed(iConfig.getParameter<bool>("doSeed")),
 DebugMode(iConfig.getParameter<bool>("DebugMode")),
 
@@ -863,6 +864,7 @@ void MuonHLTNtupler::Make_Branch()
   ntuple_->Branch("offlineDataPURMS", &offlineDataPURMS_, "offlineDataPURMS/D");
   ntuple_->Branch("offlineBunchLumi", &offlineBunchLumi_, "offlineBunchLumi/D");
   ntuple_->Branch("truePU", &truePU_, "truePU/I");
+if( doHI ){
   ntuple_->Branch("hi_cBin",&hi_cBin);
   ntuple_->Branch("hiHF", &hiHF);
   ntuple_->Branch("hiHFplus", &hiHFplus);
@@ -877,6 +879,7 @@ void MuonHLTNtupler::Make_Branch()
   ntuple_->Branch("hiEB", &hiEB);
   ntuple_->Branch("hiEE", &hiEE);
   ntuple_->Branch("hiET", &hiET);
+}
 
 
   ntuple_->Branch("rho_ECAL", &rho_ECAL_, "rho_ECAL/D");
@@ -1307,10 +1310,12 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
   edm::Handle<std::vector<reco::Muon> > h_offlineMuon;
   if( iEvent.getByToken(t_offlineMuon_, h_offlineMuon) ) // -- only when the dataset has offline muon collection (e.g. AOD) -- //
   {
-    edm::Handle<reco::Centrality> hicentrality;
-    iEvent.getByToken(CentralityTag_, hicentrality);
-    edm::Handle<int> hicentralityBin;
-    iEvent.getByToken(CentralityBinTag_,hicentralityBin);
+      edm::Handle<reco::Centrality> hicentrality;
+      edm::Handle<int> hicentralityBin;
+    if( doHI){
+      iEvent.getByToken(CentralityTag_, hicentrality);
+      iEvent.getByToken(CentralityBinTag_,hicentralityBin);
+    }
     edm::Handle<pat::TriggerObjectStandAloneMatch> h_recol1Matches;
     iEvent.getByToken(t_recol1Matches_, h_recol1Matches);
     edm::Handle<edm::ValueMap<int>> h_recol1Qualities;
@@ -1330,7 +1335,7 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
     int _nMuon = 0;
     for(std::vector<reco::Muon>::const_iterator mu=h_offlineMuon->begin(); mu!=h_offlineMuon->end(); ++mu)
     {
-     
+    	if( doHI) {
             hi_cBin = (int)*hicentralityBin;
             hiHF = (float) hicentrality->EtHFtowerSum();
             hiHFplus = (float) hicentrality->EtHFtowerSumPlus();
@@ -1345,6 +1350,7 @@ void MuonHLTNtupler::Fill_Muon(const edm::Event &iEvent, const edm::EventSetup &
             hiEB = (float) hicentrality->EtEBSum();
             hiEE = (float) hicentrality->EtEESum();
             hiET = (float) hicentrality->EtMidRapiditySum();
+       }
 
 
       

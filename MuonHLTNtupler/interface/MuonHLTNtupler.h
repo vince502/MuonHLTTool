@@ -137,6 +137,7 @@ private:
   bool isNewHighPtMuon(const reco::Muon& muon, const reco::Vertex& vtx);
 
   bool doMVA;
+  bool doHI;
   bool doSeed;
   bool DebugMode;
   // bool SaveAllTracks;   // store in ntuples not only truth-matched tracks but ALL tracks
